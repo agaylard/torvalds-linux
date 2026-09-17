@@ -327,6 +327,10 @@ static struct device_node *spl2sw_get_eth_child_node(struct device_node *ether_n
 	return NULL;
 }
 
+static const char * const spl2sw_plle_clock_names[] = {
+	"plle-25", "plle-2p5", "plle-112p5",
+};
+
 static int spl2sw_probe(struct platform_device *pdev)
 {
 	struct device_node *eth_ports_np;
@@ -336,6 +340,7 @@ static int spl2sw_probe(struct platform_device *pdev)
 	phy_interface_t phy_mode;
 	struct net_device *ndev;
 	struct spl2sw_mac *mac;
+	struct clk *plle_clk;
 	u8 mac_addr[ETH_ALEN];
 	int irq, i, ret;
 
@@ -366,11 +371,20 @@ static int spl2sw_probe(struct platform_device *pdev)
 	irq = ret;
 
 	/* Get clock controller. */
-	comm->clk = devm_clk_get(&pdev->dev, NULL);
+	comm->clk = devm_clk_get(&pdev->dev, "l2sw");
 	if (IS_ERR(comm->clk)) {
 		dev_err_probe(&pdev->dev, PTR_ERR(comm->clk),
 			      "Failed to retrieve clock controller!\n");
 		return PTR_ERR(comm->clk);
+	}
+
+	/* The MAC needs the PLLE outputs while it runs: hold them while bound. */
+	for (i = 0; i < ARRAY_SIZE(spl2sw_plle_clock_names); i++) {
+		plle_clk = devm_clk_get_enabled(&pdev->dev, spl2sw_plle_clock_names[i]);
+		if (IS_ERR(plle_clk))
+			return dev_err_probe(&pdev->dev, PTR_ERR(plle_clk),
+					     "Failed to get %s clock\n",
+					     spl2sw_plle_clock_names[i]);
 	}
 
 	/* Get reset controller. */
