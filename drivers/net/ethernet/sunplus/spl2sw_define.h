@@ -225,6 +225,7 @@ struct spl2sw_common {
 	struct platform_device *pdev;
 	struct reset_control *rstc;
 	struct clk *clk;
+	struct clk *plle_clks[3]; /* plle_25, plle_2p5, plle_112p5 */
 
 	void *desc_base;
 	dma_addr_t desc_dma;
