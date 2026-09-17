@@ -316,6 +316,17 @@
 			resets = <&rstc RST_CARD_CTL0>;
 			status = "disabled";
 		};
+
+		l2sw: ethernet@108000 {
+			compatible = "sunplus,sp7021-emac";
+			reg = <0x108000 0x400>;
+			interrupts = <66 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&clkc CLK_L2SW>, <&clkc PLL_E_25>,
+				 <&clkc PLL_E_2P5>, <&clkc PLL_E_112P5>;
+			clock-names = "l2sw", "plle_25", "plle_2p5", "plle_112p5";
+			resets = <&rstc RST_L2SW>;
+			status = "disabled";
+		};
 	};
 
 	leds: leds {
