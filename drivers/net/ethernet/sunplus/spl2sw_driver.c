@@ -368,12 +368,26 @@ static int spl2sw_probe(struct platform_device *pdev)
 	irq = ret;
 
 	/* Get clock controller. */
-	comm->clk = devm_clk_get(&pdev->dev, NULL);
+	comm->clk = devm_clk_get(&pdev->dev, "l2sw");
 	if (IS_ERR(comm->clk)) {
 		dev_err_probe(&pdev->dev, PTR_ERR(comm->clk),
 			      "Failed to retrieve clock controller!\n");
 		return PTR_ERR(comm->clk);
 	}
+
+	/* Claim PLLE sub-output clocks to prevent clk_disable_unused gating them. */
+	comm->plle_clks[0] = devm_clk_get_enabled(&pdev->dev, "plle_25");
+	if (IS_ERR(comm->plle_clks[0]))
+		return dev_err_probe(&pdev->dev, PTR_ERR(comm->plle_clks[0]),
+				     "Failed to get plle_25 clock\n");
+	comm->plle_clks[1] = devm_clk_get_enabled(&pdev->dev, "plle_2p5");
+	if (IS_ERR(comm->plle_clks[1]))
+		return dev_err_probe(&pdev->dev, PTR_ERR(comm->plle_clks[1]),
+				     "Failed to get plle_2p5 clock\n");
+	comm->plle_clks[2] = devm_clk_get_enabled(&pdev->dev, "plle_112p5");
+	if (IS_ERR(comm->plle_clks[2]))
+		return dev_err_probe(&pdev->dev, PTR_ERR(comm->plle_clks[2]),
+				     "Failed to get plle_112p5 clock\n");
 
 	/* Get reset controller. */
 	comm->rstc = devm_reset_control_get_exclusive(&pdev->dev, NULL);
