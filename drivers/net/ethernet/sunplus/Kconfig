@@ -22,6 +22,7 @@ if NET_VENDOR_SUNPLUS
 config SP7021_EMAC
 	tristate "Sunplus Dual 10M/100M Ethernet devices"
 	depends on SOC_SP7021 || COMPILE_TEST
+	select FIXED_PHY
 	select PHYLIB
 	help
 	  If you have Sunplus dual 10M/100M Ethernet devices, say Y.

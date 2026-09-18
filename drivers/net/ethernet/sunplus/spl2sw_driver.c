@@ -8,6 +8,7 @@
 #include <linux/etherdevice.h>
 #include <linux/netdevice.h>
 #include <linux/spinlock.h>
+#include <linux/of_mdio.h>
 #include <linux/of_net.h>
 #include <linux/reset.h>
 #include <linux/rtnetlink.h>
@@ -350,6 +351,7 @@ static const char * const spl2sw_plle_clock_names[] = {
 
 static int spl2sw_probe(struct platform_device *pdev)
 {
+	struct device_node *fixed_link_np[MAX_NETDEV_NUM] = {};
 	struct device_node *eth_ports_np;
 	struct device_node *port_np;
 	struct spl2sw_common *comm;
@@ -471,13 +473,25 @@ static int spl2sw_probe(struct platform_device *pdev)
 			continue;
 		}
 
-		/* Get phy-handle. */
-		phy_np = of_parse_phandle(port_np, "phy-handle", 0);
-		if (!phy_np) {
-			dev_err(&pdev->dev, "Failed to get phy-handle property of port@%d!\n",
-				i);
-			of_node_put(port_np);
-			continue;
+		/* Get phy-handle, or register a fixed-link PHY for MAC-to-MAC ports. */
+		if (of_phy_is_fixed_link(port_np)) {
+			ret = of_phy_register_fixed_link(port_np);
+			if (ret < 0) {
+				dev_err_probe(&pdev->dev, ret,
+					      "Failed to register fixed-link for port@%d!\n", i);
+				of_node_put(port_np);
+				goto out_put_ports;
+			}
+			fixed_link_np[i] = of_node_get(port_np);
+			phy_np = of_node_get(port_np);
+		} else {
+			phy_np = of_parse_phandle(port_np, "phy-handle", 0);
+			if (!phy_np) {
+				dev_err(&pdev->dev,
+					"Failed to get phy-handle property of port@%d!\n", i);
+				of_node_put(port_np);
+				continue;
+			}
 		}
 
 		/* Get mac-address from nvmem. */
@@ -530,6 +544,11 @@ static int spl2sw_probe(struct platform_device *pdev)
 		unregister_netdev(ndev);
 		of_node_put(mac->phy_node);
 		comm->ndev[i] = NULL;
+		if (fixed_link_np[i]) {
+			of_phy_deregister_fixed_link(fixed_link_np[i]);
+			of_node_put(fixed_link_np[i]);
+			fixed_link_np[i] = NULL;
+		}
 	}
 
 	/* Find first valid net device. */
@@ -551,6 +570,8 @@ static int spl2sw_probe(struct platform_device *pdev)
 	napi_enable(&comm->rx_napi);
 	netif_napi_add_tx(ndev, &comm->tx_napi, spl2sw_tx_poll);
 	napi_enable(&comm->tx_napi);
+	for (i = 0; i < MAX_NETDEV_NUM; i++)
+		of_node_put(fixed_link_np[i]);
 	return 0;
 
 out_put_ports:
@@ -561,6 +582,10 @@ out_put_ports:
 			mac = netdev_priv(comm->ndev[i]);
 			of_node_put(mac->phy_node);
 			unregister_netdev(comm->ndev[i]);
+		}
+		if (fixed_link_np[i]) {
+			of_phy_deregister_fixed_link(fixed_link_np[i]);
+			of_node_put(fixed_link_np[i]);
 		}
 	}
 

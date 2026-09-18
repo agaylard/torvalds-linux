@@ -82,6 +82,8 @@ void spl2sw_phy_remove(struct spl2sw_common *comm)
 			ndev = comm->ndev[i];
 			mac = netdev_priv(ndev);
 			phy_disconnect(ndev->phydev);
+			if (of_phy_is_fixed_link(mac->phy_node))
+				of_phy_deregister_fixed_link(mac->phy_node);
 			of_node_put(mac->phy_node);
 		}
 }
