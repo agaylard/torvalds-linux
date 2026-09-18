@@ -44,7 +44,9 @@ properties:
   ethernet-ports:
     type: object
     additionalProperties: false
-    description: Ethernet ports to PHY
+    description:
+      Ethernet ports, each connected to a PHY or, as a fixed link, to another
+      MAC
 
     properties:
       "#address-cells":
@@ -56,8 +58,9 @@ properties:
     patternProperties:
       "^port@[0-1]$":
         type: object
-        additionalProperties: false
-        description: Port to PHY
+        $ref: ethernet-controller.yaml#
+        unevaluatedProperties: false
+        description: Ethernet port, connected to either a PHY or a fixed-link MAC
 
         properties:
           reg:
@@ -79,12 +82,24 @@ properties:
             items:
               - const: mac-address
 
+          fixed-link:
+            $ref: ethernet-controller.yaml#/properties/fixed-link
+            type: object
+            properties:
+              speed:
+                enum: [10, 100]
+
         required:
           - reg
-          - phy-handle
           - phy-mode
           - nvmem-cells
           - nvmem-cell-names
+
+        oneOf:
+          - required:
+              - phy-handle
+          - required:
+              - fixed-link
 
   mdio:
     $ref: mdio.yaml#
@@ -135,10 +150,14 @@ examples:
 
             port@1 {
                 reg = <1>;
-                phy-handle = <&eth_phy1>;
                 phy-mode = "rmii";
                 nvmem-cells = <&mac_addr1>;
                 nvmem-cell-names = "mac-address";
+
+                fixed-link {
+                    speed = <100>;
+                    full-duplex;
+                };
             };
         };
 
@@ -148,10 +167,6 @@ examples:
 
             eth_phy0: ethernet-phy@0 {
                 reg = <0>;
-            };
-
-            eth_phy1: ethernet-phy@1 {
-                reg = <1>;
             };
         };
     };
