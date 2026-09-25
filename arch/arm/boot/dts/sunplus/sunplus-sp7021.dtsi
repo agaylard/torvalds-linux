@@ -317,6 +317,24 @@
 			status = "disabled";
 		};
 
+		mmc1: mmc@3e80 {
+			compatible = "sunplus,sp7021-sd";
+			reg = <0x3e80 0x280>;
+			interrupts = <21 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&clkc CLK_CARD_CTL1>;
+			resets = <&rstc RST_CARD_CTL1>;
+			status = "disabled";
+		};
+
+		sdio: mmc@8400 {
+			compatible = "sunplus,sp7021-sd";
+			reg = <0x8400 0x280>;
+			interrupts = <22 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&clkc CLK_CARD_CTL4>;
+			resets = <&rstc RST_CARD_CTL4>;
+			status = "disabled";
+		};
+
 		l2sw: ethernet@108000 {
 			compatible = "sunplus,sp7021-emac";
 			reg = <0x108000 0x400>;
