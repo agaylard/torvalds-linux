@@ -27138,6 +27138,13 @@ S:	Maintained
 F:	Documentation/devicetree/bindings/rtc/sunplus,sp7021-rtc.yaml
 F:	drivers/rtc/rtc-sunplus.c
 
+SUNPLUS SD/SDIO DRIVER
+M:	Andrew Gaylard <ag@ffroot.co.za>
+L:	linux-mmc@vger.kernel.org
+S:	Maintained
+F:	Documentation/devicetree/bindings/mmc/sunplus,sp7021-sd.yaml
+F:	drivers/mmc/host/sunplus-sd.c
+
 SUNPLUS SPI CONTROLLER INTERFACE DRIVER
 M:	Li-hao Kuo <lhjeff911@gmail.com>
 L:	linux-spi@vger.kernel.org
