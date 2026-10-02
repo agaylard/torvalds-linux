@@ -23,6 +23,16 @@ config MMC_SUNPLUS
 
 	  If unsure, say N
 
+config MMC_SUNPLUS_SD
+	tristate "Sunplus SP7021 SD/SDIO Controller"
+	depends on ARCH_SUNPLUS || COMPILE_TEST
+	help
+	  This selects the driver for the two SD/SDIO host controllers found in
+	  the Sunplus SP7021 SoC, the first of which can be used for booting.
+
+	  If your SP7021 board has an SD card or SDIO peripheral, say Y or M here.
+	  If unsure, say N.
+
 config MMC_ARMMMCI
 	tristate "ARM AMBA Multimedia Card Interface support"
 	depends on ARM_AMBA
