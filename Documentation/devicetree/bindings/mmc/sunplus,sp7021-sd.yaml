@@ -1,0 +1,90 @@
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+# Copyright (C) Sunplus Technology Co., Ltd.
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/mmc/sunplus,sp7021-sd.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: Sunplus SP7021 SD/SDIO host controller
+
+description:
+  The SP7021 has two identical SD/SDIO host controllers. A controller runs
+  in SDIO mode when its node has both no-sd and no-mmc, otherwise it runs
+  in SD mode, which supports SD and MMC cards but not SDIO cards.
+
+maintainers:
+  - Andrew Gaylard <ag@ffroot.co.za>
+
+allOf:
+  - $ref: mmc-controller.yaml#
+
+properties:
+  compatible:
+    const: sunplus,sp7021-sd
+
+  reg:
+    maxItems: 1
+
+  interrupts:
+    maxItems: 1
+
+  clocks:
+    maxItems: 1
+
+  resets:
+    maxItems: 1
+
+  bus-width:
+    enum: [1, 4]
+
+required:
+  - compatible
+  - reg
+  - interrupts
+  - clocks
+  - resets
+
+unevaluatedProperties: false
+
+examples:
+  - |
+    #include <dt-bindings/clock/sunplus,sp7021-clkc.h>
+    #include <dt-bindings/gpio/gpio.h>
+    #include <dt-bindings/interrupt-controller/irq.h>
+    #include <dt-bindings/reset/sunplus,sp7021-reset.h>
+
+    mmc@9c003e80 {
+        compatible = "sunplus,sp7021-sd";
+        reg = <0x9c003e80 0x280>;
+        interrupts = <21 IRQ_TYPE_LEVEL_HIGH>;
+        clocks = <&clkc CLK_CARD_CTL1>;
+        resets = <&rstc RST_CARD_CTL1>;
+        pinctrl-names = "default";
+        pinctrl-0 = <&sdcard_pins>;
+        bus-width = <4>;
+        max-frequency = <50000000>;
+        disable-wp;
+        cap-sd-highspeed;
+        no-sdio;
+        no-mmc;
+        cd-gpios = <&pctl 0 GPIO_ACTIVE_LOW>;
+    };
+
+  - |
+    #include <dt-bindings/clock/sunplus,sp7021-clkc.h>
+    #include <dt-bindings/interrupt-controller/irq.h>
+    #include <dt-bindings/reset/sunplus,sp7021-reset.h>
+
+    mmc@9c008400 {
+        compatible = "sunplus,sp7021-sd";
+        reg = <0x9c008400 0x280>;
+        interrupts = <22 IRQ_TYPE_LEVEL_HIGH>;
+        clocks = <&clkc CLK_CARD_CTL4>;
+        resets = <&rstc RST_CARD_CTL4>;
+        bus-width = <4>;
+        max-frequency = <50000000>;
+        non-removable;
+        no-sd;
+        no-mmc;
+    };
+...
