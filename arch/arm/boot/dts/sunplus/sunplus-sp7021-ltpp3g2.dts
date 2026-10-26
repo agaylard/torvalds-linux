@@ -122,7 +122,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&sdcard_pins>;
 	bus-width = <4>;
-	max-frequency = <50000000>;
+	max-frequency = <52000000>;
 	disable-wp;
 	cap-sd-highspeed;
 	no-sdio;
@@ -136,7 +136,7 @@
 	pinctrl-0 = <&pins_sdio>;
 	mmc-pwrseq = <&sdio_pwrseq>;
 	bus-width = <4>;
-	max-frequency = <50000000>;
+	max-frequency = <52000000>;
 	non-removable;
 	disable-wp;
 	cap-sd-highspeed;
