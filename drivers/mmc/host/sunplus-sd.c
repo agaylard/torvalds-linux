@@ -28,6 +28,7 @@
 
 #define SPSDC_MIN_CLK			400000
 #define SPSDC_MAX_CLK			52000000
+#define SPSDC_50M_CLK			50000000
 #define SPSDC_MAX_BLK_COUNT		65536
 #define SPSDC_INT_MAX_CLK		25000000
 #define SPSDC_PAGE_SIZE			512
@@ -295,6 +296,9 @@ static void spsdc_set_bus_clk(struct spsdc_host *host, int clk)
 	if (clk < f_min)
 		clk = f_min;
 	if (clk > f_max)
+		clk = f_max;
+	/* LOCAL: run high speed at 50.625 MHz (202.5 / 4), above the 50 MHz limit. */
+	if (clk >= SPSDC_50M_CLK)
 		clk = f_max;
 
 	clkdiv = DIV_ROUND_UP(clk_get_rate(host->clk), clk) - 1;
