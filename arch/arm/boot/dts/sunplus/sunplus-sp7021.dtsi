@@ -317,6 +317,72 @@
 			status = "disabled";
 		};
 
+		usb_phy0: usb-phy@4a80 {
+			compatible = "sunplus,sp7021-usb2-phy";
+			reg = <0x4a80 0x80>, <0x248 0x10>;
+			reg-names = "phy", "moon4";
+			clocks = <&clkc CLK_UPHY0>;
+			resets = <&rstc RST_UPHY0>;
+			nvmem-cells = <&disc_vol>;
+			nvmem-cell-names = "disc_vol";
+			sunplus,disc-vol-addr-off = <0>;
+			#phy-cells = <0>;
+			status = "disabled";
+		};
+
+		usb_phy1: usb-phy@4b00 {
+			compatible = "sunplus,sp7021-usb2-phy";
+			reg = <0x4b00 0x80>, <0x258 0x10>;
+			reg-names = "phy", "moon4";
+			clocks = <&clkc CLK_UPHY1>;
+			resets = <&rstc RST_UPHY1>;
+			nvmem-cells = <&disc_vol>;
+			nvmem-cell-names = "disc_vol";
+			sunplus,disc-vol-addr-off = <5>;
+			#phy-cells = <0>;
+			status = "disabled";
+		};
+
+		ohci0: usb@102080 {
+			compatible = "sunplus,sp7021-ohci", "generic-ohci";
+			reg = <0x102080 0x68>;
+			interrupts = <15 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&clkc CLK_USBC0>;
+			resets = <&rstc RST_USBC0>;
+			phys = <&usb_phy0>;
+			status = "disabled";
+		};
+
+		ehci0: usb@102100 {
+			compatible = "sunplus,sp7021-ehci", "generic-ehci";
+			reg = <0x102100 0x68>;
+			interrupts = <14 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&clkc CLK_USBC0>;
+			resets = <&rstc RST_USBC0>;
+			phys = <&usb_phy0>;
+			status = "disabled";
+		};
+
+		ohci1: usb@103080 {
+			compatible = "sunplus,sp7021-ohci", "generic-ohci";
+			reg = <0x103080 0x68>;
+			interrupts = <18 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&clkc CLK_USBC1>;
+			resets = <&rstc RST_USBC1>;
+			phys = <&usb_phy1>;
+			status = "disabled";
+		};
+
+		ehci1: usb@103100 {
+			compatible = "sunplus,sp7021-ehci", "generic-ehci";
+			reg = <0x103100 0x68>;
+			interrupts = <17 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&clkc CLK_USBC1>;
+			resets = <&rstc RST_USBC1>;
+			phys = <&usb_phy1>;
+			status = "disabled";
+		};
+
 		l2sw: ethernet@108000 {
 			compatible = "sunplus,sp7021-emac";
 			reg = <0x108000 0x400>;
