@@ -53,6 +53,7 @@ properties:
               - st,stm32mp15-ohci
               - st,stm32mp23-ohci
               - st,stm32mp25-ohci
+              - sunplus,sp7021-ohci
           - const: generic-ohci
       - enum:
           - generic-ohci
