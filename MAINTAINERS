@@ -27112,6 +27112,14 @@ W:	https://sunplus.atlassian.net/wiki/spaces/doc/overview
 F:	Documentation/devicetree/bindings/net/sunplus,sp7021-emac.yaml
 F:	drivers/net/ethernet/sunplus/
 
+SUNPLUS I2C CONTROLLER DRIVER
+M:	Andrew Gaylard <ag@ffroot.co.za>
+M:	Li-hao Kuo <lhjeff911@gmail.com>
+L:	linux-i2c@vger.kernel.org
+S:	Maintained
+F:	Documentation/devicetree/bindings/i2c/sunplus,sp7021-i2cm.yaml
+F:	drivers/i2c/busses/i2c-sp7021.c
+
 SUNPLUS MMC DRIVER
 M:	Tony Huang <tonyhuang.sunplus@gmail.com>
 M:	Li-hao Kuo <lhjeff911@gmail.com>

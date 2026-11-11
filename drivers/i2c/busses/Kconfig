@@ -1170,6 +1170,17 @@ config I2C_SIMTEC
 	  This driver can also be built as a module. If so, the module
 	  will be called i2c-simtec.
 
+config I2C_SP7021
+	tristate "Sunplus SP7021 I2C master driver"
+	depends on SOC_SP7021 || COMPILE_TEST
+	help
+	  Support for the I2C master controller on the Sunplus SP7021 SoC.
+	  The SP7021 has four I2C master controllers supporting standard
+	  (100 kHz) and fast (400 kHz) modes with PIO and DMA.
+
+	  This driver can also be built as a module. If so, the module
+	  will be called i2c-sp7021.
+
 config I2C_SPRD
 	tristate "Spreadtrum I2C interface"
 	depends on I2C=y && (ARCH_SPRD || COMPILE_TEST)
