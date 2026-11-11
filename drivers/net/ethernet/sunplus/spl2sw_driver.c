@@ -203,18 +203,30 @@ static const struct net_device_ops netdev_ops = {
 	.ndo_tx_timeout = spl2sw_ethernet_tx_timeout,
 };
 
+static const u8 spl2sw_sunplus_ouis[][3] = {
+	{ 0xfc, 0x4b, 0xbc },
+	{ 0x1c, 0x50, 0x1e },
+};
+
 static void spl2sw_check_mac_vendor_id_and_convert(u8 *mac_addr)
 {
+	unsigned int i;
+
 	/* Byte order of MAC address of some samples are reversed.
 	 * Check vendor id and convert byte order if it is wrong.
-	 * OUI of Sunplus: fc:4b:bc
 	 */
-	if (mac_addr[5] == 0xfc && mac_addr[4] == 0x4b && mac_addr[3] == 0xbc &&
-	    (mac_addr[0] != 0xfc || mac_addr[1] != 0x4b || mac_addr[2] != 0xbc)) {
+	for (i = 0; i < ARRAY_SIZE(spl2sw_sunplus_ouis); i++) {
+		const u8 *oui = spl2sw_sunplus_ouis[i];
 
-		swap(mac_addr[0], mac_addr[5]);
-		swap(mac_addr[1], mac_addr[4]);
-		swap(mac_addr[2], mac_addr[3]);
+		if (mac_addr[5] == oui[0] && mac_addr[4] == oui[1] &&
+		    mac_addr[3] == oui[2] &&
+		    (mac_addr[0] != oui[0] || mac_addr[1] != oui[1] ||
+		     mac_addr[2] != oui[2])) {
+			swap(mac_addr[0], mac_addr[5]);
+			swap(mac_addr[1], mac_addr[4]);
+			swap(mac_addr[2], mac_addr[3]);
+			return;
+		}
 	}
 }
 
