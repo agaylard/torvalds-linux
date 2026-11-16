@@ -30,6 +30,10 @@ static int spl2sw_ethernet_open(struct net_device *ndev)
 
 	netdev_dbg(ndev, "Open port = %x\n", mac->lan_port);
 
+	/* The PHY is connected after the net device is registered. */
+	if (!ndev->phydev)
+		return -ENODEV;
+
 	comm->enable |= mac->lan_port;
 
 	spl2sw_mac_hw_start(comm);
@@ -482,6 +486,20 @@ static int spl2sw_probe(struct platform_device *pdev)
 	}
 	of_node_put(eth_ports_np);
 
+	/* Connect the PHYs. Remove a port whose PHY does not connect. */
+	for (i = 0; i < MAX_NETDEV_NUM; i++) {
+		ndev = comm->ndev[i];
+		if (!ndev || !spl2sw_phy_connect(ndev))
+			continue;
+
+		netdev_err(ndev, "Failed to connect phy, removing the port!\n");
+		mac = netdev_priv(ndev);
+		spl2sw_mac_addr_del(mac);
+		unregister_netdev(ndev);
+		of_node_put(mac->phy_node);
+		comm->ndev[i] = NULL;
+	}
+
 	/* Find first valid net device. */
 	for (i = 0; i < MAX_NETDEV_NUM; i++) {
 		if (comm->ndev[i])
@@ -496,12 +514,6 @@ static int spl2sw_probe(struct platform_device *pdev)
 	/* Save first valid net device */
 	ndev = comm->ndev[i];
 
-	ret = spl2sw_phy_connect(comm);
-	if (ret) {
-		netdev_err(ndev, "Failed to connect phy!\n");
-		goto out_unregister_dev;
-	}
-
 	/* Add and enable napi. */
 	netif_napi_add(ndev, &comm->rx_napi, spl2sw_rx_poll);
 	napi_enable(&comm->rx_napi);
@@ -512,7 +524,6 @@ static int spl2sw_probe(struct platform_device *pdev)
 out_put_ports:
 	of_node_put(eth_ports_np);
 
-out_unregister_dev:
 	for (i = 0; i < MAX_NETDEV_NUM; i++) {
 		if (comm->ndev[i]) {
 			mac = netdev_priv(comm->ndev[i]);
