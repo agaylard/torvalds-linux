@@ -208,6 +208,22 @@ static const struct net_device_ops netdev_ops = {
 	.ndo_tx_timeout = spl2sw_ethernet_tx_timeout,
 };
 
+static int spl2sw_set_link_ksettings(struct net_device *ndev,
+				     const struct ethtool_link_ksettings *cmd)
+{
+	/* phylib does not check a forced speed against the PHY's supported modes. */
+	if (cmd->base.autoneg == AUTONEG_DISABLE && cmd->base.speed > SPEED_100)
+		return -EINVAL;
+
+	return phy_ethtool_set_link_ksettings(ndev, cmd);
+}
+
+static const struct ethtool_ops ethtool_ops = {
+	.get_link		= ethtool_op_get_link,
+	.get_link_ksettings	= phy_ethtool_get_link_ksettings,
+	.set_link_ksettings	= spl2sw_set_link_ksettings,
+};
+
 static bool spl2sw_is_sunplus_oui(u8 b0, u8 b1, u8 b2)
 {
 	return (b0 == 0xfc && b1 == 0x4b && b2 == 0xbc) ||
@@ -286,6 +302,7 @@ static u32 spl2sw_init_netdev(struct platform_device *pdev, u8 *mac_addr,
 	}
 	SET_NETDEV_DEV(ndev, &pdev->dev);
 	ndev->netdev_ops = &netdev_ops;
+	ndev->ethtool_ops = &ethtool_ops;
 	mac = netdev_priv(ndev);
 	mac->ndev = ndev;
 	ether_addr_copy(mac->mac_addr, mac_addr);
