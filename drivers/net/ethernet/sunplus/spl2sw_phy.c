@@ -63,6 +63,8 @@ int spl2sw_phy_connect(struct net_device *ndev)
 	if (!phydev)
 		return -ENODEV;
 
+	/* RMII carries at most 100 Mbit/s. */
+	phy_set_max_speed(phydev, SPEED_100);
 	phy_support_asym_pause(phydev);
 	phy_attached_info(phydev);
 
