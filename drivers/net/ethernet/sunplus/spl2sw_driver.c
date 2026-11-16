@@ -400,7 +400,6 @@ static int spl2sw_probe(struct platform_device *pdev)
 	ret = spl2sw_descs_init(comm);
 	if (ret) {
 		dev_err(&pdev->dev, "Fail to initialize mac descriptors!\n");
-		spl2sw_descs_free(comm);
 		goto out_clk_disable;
 	}
 
@@ -526,6 +525,8 @@ out_free_mdio:
 	spl2sw_mdio_remove(comm);
 
 out_clk_disable:
+	spl2sw_mac_hw_stop(comm);
+	spl2sw_descs_free(comm);
 	clk_disable_unprepare(comm->clk);
 	return ret;
 }
