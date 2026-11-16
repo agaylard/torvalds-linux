@@ -432,6 +432,7 @@ static int spl2sw_probe(struct platform_device *pdev)
 		if (of_get_phy_mode(port_np, &phy_mode)) {
 			dev_err(&pdev->dev, "Failed to get phy-mode property of port@%d!\n",
 				i);
+			of_node_put(port_np);
 			continue;
 		}
 
@@ -440,13 +441,16 @@ static int spl2sw_probe(struct platform_device *pdev)
 		if (!phy_np) {
 			dev_err(&pdev->dev, "Failed to get phy-handle property of port@%d!\n",
 				i);
+			of_node_put(port_np);
 			continue;
 		}
 
 		/* Get mac-address from nvmem. */
 		ret = spl2sw_nvmem_get_mac_address(&pdev->dev, port_np, mac_addr);
+		of_node_put(port_np);
 		if (ret == -EPROBE_DEFER) {
-			goto out_unregister_dev;
+			of_node_put(phy_np);
+			goto out_put_ports;
 		} else if (ret) {
 			dev_info(&pdev->dev, "Generate a random mac address!\n");
 			eth_random_addr(mac_addr);
@@ -454,8 +458,10 @@ static int spl2sw_probe(struct platform_device *pdev)
 
 		/* Initialize the net device. */
 		ret = spl2sw_init_netdev(pdev, mac_addr, &ndev);
-		if (ret)
-			goto out_unregister_dev;
+		if (ret) {
+			of_node_put(phy_np);
+			goto out_put_ports;
+		}
 
 		ndev->irq = irq;
 		comm->ndev[i] = ndev;
@@ -471,10 +477,11 @@ static int spl2sw_probe(struct platform_device *pdev)
 		/* Set MAC address */
 		ret = spl2sw_mac_addr_add(mac);
 		if (ret)
-			goto out_unregister_dev;
+			goto out_put_ports;
 
 		spl2sw_mac_rx_mode_set(mac);
 	}
+	of_node_put(eth_ports_np);
 
 	/* Find first valid net device. */
 	for (i = 0; i < MAX_NETDEV_NUM; i++) {
@@ -503,10 +510,17 @@ static int spl2sw_probe(struct platform_device *pdev)
 	napi_enable(&comm->tx_napi);
 	return 0;
 
+out_put_ports:
+	of_node_put(eth_ports_np);
+
 out_unregister_dev:
-	for (i = 0; i < MAX_NETDEV_NUM; i++)
-		if (comm->ndev[i])
+	for (i = 0; i < MAX_NETDEV_NUM; i++) {
+		if (comm->ndev[i]) {
+			mac = netdev_priv(comm->ndev[i]);
+			of_node_put(mac->phy_node);
 			unregister_netdev(comm->ndev[i]);
+		}
+	}
 
 out_free_mdio:
 	spl2sw_mdio_remove(comm);
