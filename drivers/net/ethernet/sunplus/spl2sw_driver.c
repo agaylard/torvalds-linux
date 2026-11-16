@@ -10,6 +10,7 @@
 #include <linux/spinlock.h>
 #include <linux/of_net.h>
 #include <linux/reset.h>
+#include <linux/rtnetlink.h>
 #include <linux/clk.h>
 #include <linux/of.h>
 
@@ -548,6 +549,16 @@ static void spl2sw_remove(struct platform_device *pdev)
 	int i;
 
 	comm = platform_get_drvdata(pdev);
+
+	/* Stop the interfaces while their PHYs are still attached. */
+	rtnl_lock();
+	for (i = 0; i < MAX_NETDEV_NUM; i++) {
+		if (comm->ndev[i]) {
+			netif_device_detach(comm->ndev[i]);
+			dev_close(comm->ndev[i]);
+		}
+	}
+	rtnl_unlock();
 
 	spl2sw_phy_remove(comm);
 
